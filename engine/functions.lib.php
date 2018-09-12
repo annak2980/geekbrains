@@ -22,9 +22,13 @@ function prepareVariables($page_name, $action = ""){
 		
 		$vars["login"] = renderPage("logout_block",$clear_vars);
 	}
-	else
-		$vars["login"] = renderPage("login_block",["back_url"=>$_SERVER["REQUEST_URI"]]);
-	
+	else {
+        if (checkAuthWithCookie()){ // если есть куки, то авторизуем сразу
+            $clear_vars["user"]=$_SESSION['user'];
+		    $clear_vars["back_url"]=$_SERVER["REQUEST_URI"];
+        }
+		$vars["login"] = renderPage("login_block",$clear_vars);
+    }
     switch ($page_name){
             
         case "index":
@@ -35,11 +39,9 @@ function prepareVariables($page_name, $action = ""){
             if ($action <> "") {
                 $vars['response'] = doActionWithLogin($action);
             }  
-            else {
-                // если есть куки, то авторизуем сразу
-                if (!checkAuthWithCookie())       
-                    // авторизация через БД
-                    authWithCredentials();
+            else {       
+                // авторизация через БД
+                authWithCredentials();
                 
                 if ($_GET["back"] != '') {
                     $back=strip_tags($_GET["back"]); //после ввода логина и пароля остаемся на той же стр   
